@@ -6,7 +6,7 @@
 module.exports = {
   discord: {
     // The Discord token of the Bot to post through.
-    token: 'Njk1OTU0MTAzNzc1MjY0Nzcw.XohsbQ.ZaquDXovxJ-fBVfETN6Fd2ofog4',
+    token: '',
     // The ID of the discord channel to post battleboard infos to.
     // Chill&out
     feedChannelId: '695941493810135060',
