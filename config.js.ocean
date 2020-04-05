@@ -1,0 +1,39 @@
+/**
+ * Discord Bot settings. These are mandatory and will affect what the bot
+ *   posts about, and where it posts to.
+ */
+
+module.exports = {
+  discord: {
+    // The Discord token of the Bot to post through.
+    token: 'Njk1OTU0MTAzNzc1MjY0Nzcw.XohsbQ.ZaquDXovxJ-fBVfETN6Fd2ofog4',
+    // The ID of the discord channel to post battleboard infos to.
+    // Chill&out
+    feedChannelId: '695941493810135060',
+    //Ocean killboard chat id
+    //feedChannelId: '535732736850132992',
+    // The ID of the discord channel to post albion status infos to.
+    // Chill&out
+    statusChannelId: '695941493810135060'
+    //Ocean killboard chat id
+    //statusChannelId: '535732736850132992'
+  },
+  guild: {
+    // The name of your guild (or guilds, if the guild is large).
+    ///guilds: process.env.ALBION_GUILDS ? process.env.ALBION_GUILDS.split(',') : [],
+    ///guilds: ['OCEAN', 'Albion Choppers'],
+    guilds: ['OCEAN'],
+    // The alliance your guild belongs to
+    alliance: process.env.ALBION_ALLIANCE
+  },
+  battle: {
+    // Min players to report as battle
+    minPlayers: 10,
+    // Min guild players to report as battle
+    minRelevantPlayers: 3
+  },
+  kill: {
+    // Min killfame to report kill
+    minFame: 0
+  }
+};
