@@ -2,14 +2,14 @@
 Description=Albion killboard bot
 
 [Service]
-ExecStart=/var/www/se/albion-kill-bot/albion-killbot/systemd.js
+ExecStart=/var/www/se/discord/albion-killbot/systemd.js
 Restart=always
 User=se
 # Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
 Group=se
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/var/www/se/albion-kill-bot/albion-killbot
+WorkingDirectory=/var/www/se/discord/albion-killbot
 
 [Install]
 WantedBy=multi-user.target
