@@ -36,6 +36,7 @@ let lastEventId = db.get('recents.eventId').value();
 let lastAlbionStatus = db.get('recents.albionStatus').value();
 let lastAlbionStatusMsg = db.get('recents.albionStatusMsg').value();
 let lastAlbionStatusTrial = db.get('recents.albionStatusTrial').value();
+lastAlbionStatusTrial = lastAlbionStatusTrial !== null ? lastAlbionStatusTrial : 0;
 
 // Initialize Discord Bot
 const bot = new Discord.Client();
