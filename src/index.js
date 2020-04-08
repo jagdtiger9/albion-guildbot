@@ -266,7 +266,7 @@ function checkServerStatus(channelId) {
       lastAlbionStatusTrial++;
       db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
 
-      if (lastAlbionStatusTrial >= 2) {
+      if (lastAlbionStatusTrial === 2) {
         sendServerStatus(channelId);
       }
     }
