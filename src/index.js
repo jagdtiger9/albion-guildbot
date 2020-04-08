@@ -263,7 +263,7 @@ function checkServerStatus(channelId) {
       db.set('recents.albionStatus', currentAlbionStatus.status).write();
       db.set('recents.albionStatusMsg', currentAlbionStatus.message).write();
       db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
-    } else {
+    } else if (lastAlbionStatusTrial < 2) {
       lastAlbionStatusTrial++;
       db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
 
