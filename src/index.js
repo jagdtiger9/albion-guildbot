@@ -35,6 +35,7 @@ let lastBattleId = db.get('recents.battleId').value();
 let lastEventId = db.get('recents.eventId').value();
 let lastAlbionStatus = db.get('recents.albionStatus').value();
 let lastAlbionStatusMsg = db.get('recents.albionStatusMsg').value();
+let lastAlbionStatusTrial = db.get('recents.albionStatusTrial').value();
 
 // Initialize Discord Bot
 const bot = new Discord.Client();
@@ -91,8 +92,8 @@ function sendBattleReport(battle, channelId) {
 
   const thumbnailUrl = battle.players.length >= 100 ? 'https://storage.googleapis.com/albion-images/static/PvP-100.png'
     : battle.players.length >= 40 ? 'https://storage.googleapis.com/albion-images/static/PvP-40.png'
-    : battle.is5v5 ? 'https://storage.googleapis.com/albion-images/static/5v5-3.png'
-    : 'https://storage.googleapis.com/albion-images/static/PvP-10.png';
+      : battle.is5v5 ? 'https://storage.googleapis.com/albion-images/static/5v5-3.png'
+        : 'https://storage.googleapis.com/albion-images/static/PvP-10.png';
 
   let fields = battle.rankedFactions.map(({ name, kills, deaths, killFame, factionType }, i) => {
     return {
@@ -104,7 +105,7 @@ function sendBattleReport(battle, channelId) {
         factionType === 'alliance' ? '\n__**Guilds**__' : '',
         Array.from(battle.guilds.values())
           .filter(({ alliance }) => alliance === name)
-          .sort((a, b) => battle.guilds.get(b.name).players.length  > battle.guilds.get(a.name).players.length)
+          .sort((a, b) => battle.guilds.get(b.name).players.length > battle.guilds.get(a.name).players.length)
           .map(({ name }) => `${name} (${battle.guilds.get(name).players.length})`)
           .join('\n'),
       ].join('\n')
@@ -191,7 +192,9 @@ function sendKillReport(event, channelId) {
 function checkKillboard() {
   logger.info('Checking killboard...');
   Albion.getEvents({ limit: 51, offset: 0 }).then(events => {
-    if (!events) { return; }
+    if (!events) {
+      return;
+    }
 
     events.sort((a, b) => a.EventId - b.EventId)
       .filter(event => event.EventId > lastEventId)
@@ -254,11 +257,18 @@ function checkServerStatus(channelId) {
     if (lastAlbionStatus !== currentAlbionStatus.status || lastAlbionStatusMsg !== currentAlbionStatus.message) {
       lastAlbionStatus = currentAlbionStatus.status;
       lastAlbionStatusMsg = currentAlbionStatus.message;
-
-      sendServerStatus(channelId);
+      lastAlbionStatusTrial = 1;
 
       db.set('recents.albionStatus', currentAlbionStatus.status).write();
       db.set('recents.albionStatusMsg', currentAlbionStatus.message).write();
+      db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
+    } else {
+      lastAlbionStatusTrial++;
+      db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
+
+      if (lastAlbionStatusTrial >= 2) {
+        sendServerStatus(channelId);
+      }
     }
   });
 }
@@ -283,7 +293,9 @@ bot.on('message', msg => {
     return;
   }
 
-  if (message.substring(0, 1) !== '!') { return; }
+  if (message.substring(0, 1) !== '!') {
+    return;
+  }
 
   const args = message.substring(1).split(' ');
   const [cmd, id] = args;
