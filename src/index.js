@@ -256,20 +256,21 @@ function checkServerStatus(channelId) {
 
   Albion.serverStatusRequest().then(currentAlbionStatus => {
     if (lastAlbionStatus !== currentAlbionStatus.status || lastAlbionStatusMsg !== currentAlbionStatus.message) {
-      lastAlbionStatus = currentAlbionStatus.status;
-      lastAlbionStatusMsg = currentAlbionStatus.message;
-      lastAlbionStatusTrial = 1;
-
-      db.set('recents.albionStatus', currentAlbionStatus.status).write();
-      db.set('recents.albionStatusMsg', currentAlbionStatus.message).write();
-      db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
+      if (lastAlbionStatusTrial === 2) {
+        lastAlbionStatusTrial--;
+        db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
+      } else {
+        lastAlbionStatus = currentAlbionStatus.status;
+        lastAlbionStatusMsg = currentAlbionStatus.message;
+        lastAlbionStatusTrial = 1;
+        db.set('recents.albionStatus', currentAlbionStatus.status).write();
+        db.set('recents.albionStatusMsg', currentAlbionStatus.message).write();
+        db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
+        sendServerStatus(channelId);
+      }
     } else if (lastAlbionStatusTrial < 2) {
       lastAlbionStatusTrial++;
       db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
-
-      if (lastAlbionStatusTrial === 2) {
-        sendServerStatus(channelId);
-      }
     }
   });
 }
