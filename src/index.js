@@ -38,6 +38,8 @@ let lastAlbionStatusMsg = db.get('recents.albionStatusMsg').value();
 let lastAlbionStatusTrial = db.get('recents.albionStatusTrial').value();
 lastAlbionStatusTrial = lastAlbionStatusTrial !== null ? lastAlbionStatusTrial : 0;
 
+const statusTrialCount = 3;
+
 // Initialize Discord Bot
 const bot = new Discord.Client();
 
@@ -255,9 +257,9 @@ function checkServerStatus(channelId) {
   logger.info('Checking server status...');
 
   Albion.serverStatusRequest().then(currentAlbionStatus => {
-    console.log(currentAlbionStatus.status);
+    logger.info(currentAlbionStatus.status);
     if (lastAlbionStatus !== currentAlbionStatus.status || lastAlbionStatusMsg !== currentAlbionStatus.message) {
-      if (lastAlbionStatusTrial === 2) {
+      if (lastAlbionStatusTrial > 1) {
         lastAlbionStatusTrial--;
         db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
       } else {
@@ -269,7 +271,7 @@ function checkServerStatus(channelId) {
         db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
         sendServerStatus(channelId);
       }
-    } else if (lastAlbionStatusTrial < 2) {
+    } else if (lastAlbionStatusTrial < statusTrialCount) {
       lastAlbionStatusTrial++;
       db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
     }
