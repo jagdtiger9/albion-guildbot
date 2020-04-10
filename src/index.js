@@ -47,7 +47,7 @@ bot.on('ready', () => {
 
   if (config.discord.statusChannelId) {
     checkServerStatus();
-    setInterval(checkServerStatus, 60000);
+    setInterval(checkServerStatus, 30000);
   }
 
   checkBattles();
@@ -255,6 +255,7 @@ function checkServerStatus(channelId) {
   logger.info('Checking server status...');
 
   Albion.serverStatusRequest().then(currentAlbionStatus => {
+    console.log(currentAlbionStatus.status);
     if (lastAlbionStatus !== currentAlbionStatus.status || lastAlbionStatusMsg !== currentAlbionStatus.message) {
       if (lastAlbionStatusTrial === 2) {
         lastAlbionStatusTrial--;
