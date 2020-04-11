@@ -36,7 +36,7 @@ let lastEventId = db.get('recents.eventId').value();
 let lastAlbionStatus = db.get('recents.albionStatus').value();
 let lastAlbionStatusMsg = db.get('recents.albionStatusMsg').value();
 let lastAlbionStatusTrial = db.get('recents.albionStatusTrial').value();
-lastAlbionStatusTrial = lastAlbionStatusTrial !== null ? lastAlbionStatusTrial : 0;
+lastAlbionStatusTrial = lastAlbionStatusTrial !== null ? lastAlbionStatusTrial : 1;
 
 const statusTrialCount = 3;
 
@@ -255,7 +255,9 @@ function sendServerStatus(channelId, isCmd) {
 
 function checkServerStatus(channelId) {
   logger.info('Checking server status...');
-
+  // Устанавливаемый статус получает 3 балла
+  // Измененный статус скидывает значение на 1балл, до 1
+  // Как только значение скинуто до 1, устанавливается новый, измененный статус со сзначением 3балла
   Albion.serverStatusRequest().then(currentAlbionStatus => {
     logger.info(currentAlbionStatus.status);
     if (lastAlbionStatus !== currentAlbionStatus.status || lastAlbionStatusMsg !== currentAlbionStatus.message) {
@@ -265,7 +267,7 @@ function checkServerStatus(channelId) {
       } else {
         lastAlbionStatus = currentAlbionStatus.status;
         lastAlbionStatusMsg = currentAlbionStatus.message;
-        lastAlbionStatusTrial = 1;
+        lastAlbionStatusTrial = statusTrialCount;
         db.set('recents.albionStatus', currentAlbionStatus.status).write();
         db.set('recents.albionStatusMsg', currentAlbionStatus.message).write();
         db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
