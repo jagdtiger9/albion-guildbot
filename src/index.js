@@ -155,6 +155,7 @@ function sendBattleReport(battle, channelId) {
 
 function sendKillReport(event, channelId) {
   const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
+  console.log(event);
 
   createImage('Victim', event).then(imgBuffer => {
     const participants = parseInt(event.numberOfParticipants || event.GroupMembers.length, 10);
@@ -175,13 +176,54 @@ function sendKillReport(event, channelId) {
         description: assists
           ? `Assisted by ${assists} other player${assists > 1 ? 's' : ''}.`
           : 'Solo kill!',
-        fields: [{
-          name: isFriendlyKill ? 'Victim\'s Guild' : 'Killer\'s Guild',
-          value: createGuildTag(event[isFriendlyKill ? 'Victim' : 'Killer']),
-          inline: true,
-        }],
+        fields: [
+          {
+            name: isFriendlyKill ? 'Victim\'s Guild' : 'Killer\'s Guild',
+            value: createGuildTag(event[isFriendlyKill ? 'Victim' : 'Killer']),
+            inline: false,
+          }
+        ],
         timestamp: event.TimeStamp,
       });
+
+      let assistant = event.Participants.reduce(
+        function(accumulator, item) {
+          let record = (item.DamageDone ? item.DamageDone.toLocaleString() : item.SupportHealingDone.toLocaleString()) +
+            ' - ' + item.Name +
+            //(item.GuildName ? `[${item.GuildName}] ` : '') +
+            `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
+
+          if (item.DamageDone) {
+            accumulator.dd += `\n${record}`;
+          } else if(item.SupportHealingDone) {
+            accumulator.heal += `\n${record}`;
+          } else {
+            //accumulator.dd += `\n${record}`;
+          }
+
+          return accumulator;
+        }, { 'dd': '', 'heal': '' });
+      console.log(assistant);
+
+      //embed.fields = Object.assign({ first_name: 'Samuel' }, embed.fields);
+      if (assistant.dd) {
+        embed.fields.push(
+          {
+            name: 'Damage dealers',
+            value: assistant.dd,
+            inline: false,
+          }
+        );
+      }
+      if (assistant.heal) {
+        embed.fields.push(
+          {
+            name: 'Healers',
+            value: assistant.heal,
+            inline: false,
+          }
+        );
+      }
     }
 
     const files = [{ name: 'kill.png', attachment: imgBuffer }];
