@@ -191,13 +191,13 @@ function sendKillReport(event, channelId) {
       let assistant = event.Participants.reduce(
         function(accumulator, item) {
           let record = (item.DamageDone ? item.DamageDone.toLocaleString() : item.SupportHealingDone.toLocaleString()) +
-            ` - [${item.Name}](${infoUrl}/players/${item.Id})` +
-            //(item.GuildName ? `[${item.GuildName}] ` : '') +
-            `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
+            ` - [${item.Name}](${infoUrl}/players/${item.Id})`;
+          //(item.GuildName ? `[${item.GuildName}] ` : '') +
+          //`, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
           if (item.DamageDone) {
             accumulator.dd += `\n${record}`;
-          } else if(item.SupportHealingDone) {
+          } else if (item.SupportHealingDone) {
             accumulator.heal += `\n${record}`;
           } else {
             //accumulator.dd += `\n${record}`;
@@ -213,7 +213,7 @@ function sendKillReport(event, channelId) {
           {
             name: 'Damage dealers',
             value: assistant.dd,
-            inline: false,
+            inline: true,
           }
         );
       }
@@ -222,7 +222,7 @@ function sendKillReport(event, channelId) {
           {
             name: 'Healers',
             value: assistant.heal,
-            inline: false,
+            inline: true,
           }
         );
       }
