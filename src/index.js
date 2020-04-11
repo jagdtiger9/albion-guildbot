@@ -40,6 +40,8 @@ lastAlbionStatusTrial = lastAlbionStatusTrial !== null ? lastAlbionStatusTrial :
 
 const statusTrialCount = 3;
 
+const infoUrl = 'https://www.albiononline2d.com/en/scoreboard';
+
 // Initialize Discord Bot
 const bot = new Discord.Client();
 
@@ -189,7 +191,7 @@ function sendKillReport(event, channelId) {
       let assistant = event.Participants.reduce(
         function(accumulator, item) {
           let record = (item.DamageDone ? item.DamageDone.toLocaleString() : item.SupportHealingDone.toLocaleString()) +
-            ' - ' + item.Name +
+            ` - [${item.Name}](${infoUrl}/players/${item.Id})` +
             //(item.GuildName ? `[${item.GuildName}] ` : '') +
             `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
@@ -262,7 +264,7 @@ function checkKillboard() {
 
 function createGuildTag(player) {
   const allianceTag = player.AllianceName ? `[${player.AllianceName}]` : '';
-  return player.GuildName ? `${allianceTag} ${player.GuildName}` : 'N/A';
+  return player.GuildName ? `${allianceTag} [${player.GuildName}](${infoUrl}/guilds/${player.GuildId})` : 'N/A';
 }
 
 function createDisplayName(player) {
