@@ -195,31 +195,31 @@ function sendKillReport(event, channelId) {
                         //(item.GuildName ? `[${item.GuildName}] ` : '') + `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
                         if (item.DamageDone) {
-                            accumulator.dd += `\n${record}`;
+                            accumulator.dd.push(record);
                         } else if (item.SupportHealingDone) {
-                            accumulator.heal += `\n${record}`;
+                            accumulator.heal.push(record);
                         }
 
                         return accumulator;
                     },
-                    { 'dd': '', 'heal': '' }
+                    { 'dd': [], 'heal': [] }
                 );
                 console.log(assistant);
 
-                if (assistant.dd) {
+                if (assistant.dd.length) {
                     embed.fields.push(
                         {
-                            name: 'Damage assists',
-                            value: assistant.dd,
+                            name: 'Damage' + (assistant.dd.length > 1 ? ` + ${assistant.dd.length - 1}` : ''),
+                            value: assistant.dd.join('\n'),
                             inline: true,
                         }
                     );
                 }
-                if (assistant.heal) {
+                if (assistant.heal.length) {
                     embed.fields.push(
                         {
-                            name: 'Heal assists',
-                            value: assistant.heal,
+                            name: 'Heal' + (assistant.heal.length > 1 ? ` + ${assistant.heal.length - 1}` : ''),
+                            value: assistant.heal.join('\n'),
                             inline: true,
                         }
                     );
