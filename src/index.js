@@ -176,9 +176,7 @@ function sendKillReport(event, channelId) {
                 Object.assign(embed, {
                     //thumbnail: { url: getItemUrl(event.Killer.Equipment.MainHand) },
                     title: `${event.Killer.Name} just killed ${event.Victim.Name}!`,
-                    /*description: assists
-                        ? `Assisted by ${assists} other player${assists > 1 ? 's' : ''}.`
-                        : 'Solo kill!',*/
+                    //description: assists ? `Assisted by ${assists} other player${assists > 1 ? 's' : ''}.` : 'Solo kill!',
                     description: `Fame: **${event.TotalVictimKillFame.toLocaleString()}**`,
                     fields: [
                         /*{

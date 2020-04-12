@@ -90,9 +90,9 @@ function createImage(target, event) {
             output.print(font, ITEM_SIZE * 6 - scoreDistanceVictim - FONT_SIZE, FONT_SIZE + ITEM_SIZE + (FONT_SIZE - 18) / 2, gearScoreVictim);
 
             let guildName = (event.Killer.AllianceName ? `[${event.Killer.AllianceName}]` : '') + event.Killer.GuildName;
-            output.print(font, 12, (FONT_SIZE - 18) / 2, guildName ? guildName : 'N/A');
+            output.print(font, 4, (FONT_SIZE - 18) / 2, guildName ? guildName : 'N/A');
             guildName = (event.Victim.AllianceName ? `[${event.Victim.AllianceName}]` : '') + event.Victim.GuildName;
-            output.print(font, 12, FONT_SIZE + ITEM_SIZE + (FONT_SIZE - 18) / 2, guildName ? guildName : 'N/A');
+            output.print(font, 4, FONT_SIZE + ITEM_SIZE + (FONT_SIZE - 18) / 2, guildName ? guildName : 'N/A');
 
             if (event.TotalVictimKillFame < config.kill.minFame) {
                 output.crop(0, 0, ITEM_SIZE * 6, FONT_SIZE);
