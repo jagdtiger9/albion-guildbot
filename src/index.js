@@ -148,7 +148,7 @@ function sendBattleReport(battle, channelId) {
     fields,
   };
 
-  bot.channels.get(channelId || config.discord.feedChannelId).send({ embed }).then(() => {
+  bot.channels.cache.get(channelId || config.discord.feedChannelId).send({ embed }).then(() => {
     logger.info(`Successfully posted log of battle between ${title}.`);
   }).catch(err => {
     logger.error(err);
@@ -190,10 +190,9 @@ function sendKillReport(event, channelId) {
 
       let assistant = event.Participants.reduce(
         function(accumulator, item) {
-          let record = (item.DamageDone ? item.DamageDone.toLocaleString() : item.SupportHealingDone.toLocaleString()) +
-            ` - [${item.Name}](${infoUrl}/players/${item.Id})`;
-          //(item.GuildName ? `[${item.GuildName}] ` : '') +
-          //`, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
+          let record = item.DamageDone ? item.DamageDone : item.SupportHealingDone;
+          record = Math.round(record).toLocaleString() + ` - [${item.Name}](${infoUrl}/players/${item.Id})`;
+          //(item.GuildName ? `[${item.GuildName}] ` : '') + `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
           if (item.DamageDone) {
             accumulator.dd += `\n${record}`;
@@ -230,7 +229,7 @@ function sendKillReport(event, channelId) {
 
     const files = [{ name: 'kill.png', attachment: imgBuffer }];
 
-    return bot.channels.get((channelId || config.discord.feedChannelId)).send({ embed, files });
+    return bot.channels.cache.get((channelId || config.discord.feedChannelId)).send({ embed, files });
   }).then(() => {
     logger.info(`Successfully posted log of ${createDisplayName(event.Killer)} killing ${createDisplayName(event.Victim)}.`);
   });
@@ -290,7 +289,7 @@ function sendServerStatus(channelId, isCmd) {
     timestamp: now.toISOString(),
   };
 
-  bot.channels.get(channelId || config.discord.statusChannelId).send({ embed }).then(() => {
+  bot.channels.cache.get(channelId || config.discord.statusChannelId).send({ embed }).then(() => {
     logger.info(`Successfully posted albion status: ${lastAlbionStatus}`);
   }).catch(err => {
     logger.error(err);
