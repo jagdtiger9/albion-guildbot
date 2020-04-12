@@ -24,7 +24,7 @@ rules:
   eqeqeq: 2
   func-style: [2, declaration]
   handle-callback-err: 2
-  indent: [2, 2, {
+  indent: [4, 4, {
     "flatTernaryExpressions": true,
     "SwitchCase": 1
   }]

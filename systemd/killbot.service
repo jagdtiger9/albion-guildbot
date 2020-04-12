@@ -7,7 +7,7 @@ Restart=always
 User=se
 # Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
 Group=se
-Environment=PATH=/usr/bin:/usr/local/bin
+Environment=PATH=/usr/local/bin:/usr/bin
 Environment=NODE_ENV=production
 WorkingDirectory=/var/www/se/discord/albion-killbot
 

@@ -1,14 +1,14 @@
 import Alliance from './Alliance';
 import Guild from './Guild';
-import IBattleData, { IPlayerData } from './IBattleData';
+import IBattleData, {IPlayerData} from './IBattleData';
 
 /**
  * The type of grouping a {@link Faction} represents.
  */
 export enum FactionType {
-  Alliance = 'alliance',
-  Guild = 'guild',
-  Unguilded = 'unguilded',
+    Alliance = 'alliance',
+    Guild = 'guild',
+    Unguilded = 'unguilded',
 }
 
 /**
@@ -16,12 +16,12 @@ export enum FactionType {
  *   necessary to construct a {@link Faction}.
  */
 export interface IFactionLike {
-  deaths: number;
-  factionType: FactionType;
-  killFame: number;
-  kills: number;
-  name: string;
-  players: IPlayerData[];
+    deaths: number;
+    factionType: FactionType;
+    killFame: number;
+    kills: number;
+    name: string;
+    players: IPlayerData[];
 }
 
 /**
@@ -32,44 +32,44 @@ export interface IFactionLike {
  *   used for being able to associate all players with a group.
  */
 export default class Faction implements IFactionLike {
-  /**
-   * Construct a {@link Faction} by extracting and grouping all of the
-   *   unguilded players in the passed {@link IBattleData}.
-   */
-  static fromUnguilded(battleData: IBattleData) {
-    const players = Object.values(battleData.players)
-      .filter(player => player.guildName === '');
+    /**
+     * Construct a {@link Faction} by extracting and grouping all of the
+     *   unguilded players in the passed {@link IBattleData}.
+     */
+    static fromUnguilded(battleData: IBattleData) {
+        const players = Object.values(battleData.players)
+            .filter(player => player.guildName === '');
 
-    const factionData = players.reduce((data, player) => {
-      data.deaths += player.deaths;
-      data.killFame += player.killFame;
-      data.kills += player.kills;
-      return data;
-    }, {
-      deaths: 0,
-      factionType: FactionType.Unguilded,
-      killFame: 0,
-      kills: 0,
-      name: 'Unguilded',
-      players,
-    });
+        const factionData = players.reduce((data, player) => {
+            data.deaths += player.deaths;
+            data.killFame += player.killFame;
+            data.kills += player.kills;
+            return data;
+        }, {
+            deaths: 0,
+            factionType: FactionType.Unguilded,
+            killFame: 0,
+            kills: 0,
+            name: 'Unguilded',
+            players,
+        });
 
-    return new Faction(factionData as IFactionLike);
-  }
+        return new Faction(factionData as IFactionLike);
+    }
 
-  deaths: number;
-  factionType: FactionType;
-  killFame: number;
-  kills: number;
-  name: string;
-  players: IPlayerData[];
+    deaths: number;
+    factionType: FactionType;
+    killFame: number;
+    kills: number;
+    name: string;
+    players: IPlayerData[];
 
-  constructor(factionLike: IFactionLike) {
-    this.deaths = factionLike.deaths;
-    this.factionType = factionLike.factionType;
-    this.killFame = factionLike.killFame;
-    this.kills = factionLike.kills;
-    this.name = factionLike.name;
-    this.players = factionLike.players;
-  }
+    constructor(factionLike: IFactionLike) {
+        this.deaths = factionLike.deaths;
+        this.factionType = factionLike.factionType;
+        this.killFame = factionLike.killFame;
+        this.kills = factionLike.kills;
+        this.name = factionLike.name;
+        this.players = factionLike.players;
+    }
 }
