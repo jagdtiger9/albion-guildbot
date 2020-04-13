@@ -269,7 +269,9 @@ function checkKillboard(startPos, lastEventSaved) {
 
             events.filter(event => event.EventId > lastEventSaved)
                 .forEach(event => {
-                    lastEventId = event.EventId;
+                    if (startPos === 0) {
+                        lastEventId = event.EventId;
+                    }
 
                     const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
                     const isFriendlyDeath = config.guild.guilds.indexOf(event.Victim.GuildName) !== -1;
