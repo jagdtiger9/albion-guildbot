@@ -250,17 +250,19 @@ const recursiveCall = (index) => {
 
 function checkKillboard(startPos) {
     startPos = startPos || 0;
-    logger.info(`Checking killboard...${startPos}...`);
+    logger.info(`Checking killboard... - ${startPos}`);
     Albion.getEvents({ limit: 51, offset: startPos * 51 }).then(
         events => {
             if (!events) {
                 return resolve();
             }
-            let lastId = events[events.length - 1].EventId;
-            let firstId = events[0].EventId;
+            events.sort((a, b) => a.EventId - b.EventId);
 
-            events.sort((a, b) => a.EventId - b.EventId)
-                .filter(event => event.EventId > lastEventId)
+            let firstId = events[0].EventId;
+            let lastId = events[events.length - 1].EventId;
+            let lastEventSaved = lastEventId;
+
+            events.filter(event => event.EventId > lastEventId)
                 .forEach(event => {
                     lastEventId = event.EventId;
 
@@ -278,10 +280,11 @@ function checkKillboard(startPos) {
                 db.set('recents.eventId', lastEventId).write();
             }
 
-            if (lastId > lastEventId) {
-                console.log('LastSaved: ' + lastEventId);
-                console.log('LastEvent: ' + lastId);
+            if (firstId > lastEventSaved) {
+                console.log('GO Next');
+                console.log('LastSaved: ' + lastEventSaved);
                 console.log('FrstEvent: ' + firstId);
+                console.log('LastEvent: ' + lastId);
 
                 return checkKillboard(++startPos);
             }
