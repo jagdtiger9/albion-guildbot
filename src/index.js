@@ -285,10 +285,11 @@ function checkKillboard(startPos, lastEventSaved) {
                 db.set('recents.eventId', lastEventId).write();
             }
 
-            console.log('LastSaved: ' + lastEventSaved);
-            console.log('FrstEvent: ' + firstId);
-            console.log('LastEvent: ' + lastId);
             if (firstId > lastEventSaved) {
+                console.log('LastSaved: ' + lastEventSaved);
+                console.log('FrstEvent: ' + firstId);
+                console.log('LastEvent: ' + lastId);
+
                 console.log('GO Next');
 
                 return checkKillboard(++startPos, lastEventSaved);
