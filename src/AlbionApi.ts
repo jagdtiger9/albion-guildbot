@@ -13,7 +13,7 @@ const LIVE_URL = 'http://live.albiononline.com';
  */
 function baseRequest(baseUrl: string, path: string, queries?: { [key: string]: any }): Promise<any> {
     const qs = queries
-        ? '?' + Object.entries(queries).map((query: string[]) => query.join('=')).join('&')
+        ? Object.entries(queries).map((query: string[]) => query.join('=')).join('&')
         : '';
     const url = `${baseUrl}${path}?${qs}`;
 
@@ -24,9 +24,11 @@ function baseRequest(baseUrl: string, path: string, queries?: { [key: string]: a
                 return;
             }
             try {
-                resolve(JSON.parse(body.replace(/\n/g, ' ').replace(/\r/g, '').trim())); // replacements needed for status.txt
+                // replacements needed for status.txt
+                resolve(JSON.parse(body.replace(/\n/g, ' ').replace(/\r/g, '').trim()));
             } catch (error) {
-                reject(error);
+                reject('JSON parse error');
+                return;
             }
         });
     });

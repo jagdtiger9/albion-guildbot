@@ -157,7 +157,7 @@ function sendBattleReport(battle, channelId) {
 
 function sendKillReport(event, channelId) {
     const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
-    //console.log(event);
+    //console.log('==========', event.Victim.Inventory);
 
     createImage('Victim', event)
         .then(imgBufferVictim => {
@@ -166,25 +166,17 @@ function sendKillReport(event, channelId) {
 
             const embed = {
                 url: `https://albiononline.com/en/killboard/kill/${event.EventId}`,
-                title: `${event.Killer.Name} (${assists ? '+' + assists : 'Solo!'}) just killed ${event.Victim.Name}!`,
-                //description: `From guild: ${createGuildTag(event[isFriendlyKill ? 'Victim' : 'Killer'])}`,
+                title: '',
+                description: '',
                 color: isFriendlyKill ? 65280 : 16711680,
                 image: { url: 'attachment://kill.png' },
             };
 
             if (event.TotalVictimKillFame > config.kill.minFame) {
                 Object.assign(embed, {
-                    //thumbnail: { url: getItemUrl(event.Killer.Equipment.MainHand) },
                     title: `${event.Killer.Name} just killed ${event.Victim.Name}!`,
-                    //description: assists ? `Assisted by ${assists} other player${assists > 1 ? 's' : ''}.` : 'Solo kill!',
-                    description: `Fame: **${event.TotalVictimKillFame.toLocaleString()}**`,
-                    fields: [
-                        /*{
-                            name: isFriendlyKill ? 'Victim\'s Guild' : 'Killer\'s Guild',
-                            value: createGuildTag(event[isFriendlyKill ? 'Victim' : 'Killer']),
-                            inline: false,
-                        }*/
-                    ],
+                    description: `Fame: **${event.TotalVictimKillFame.toLocaleString()}** ${assists ? '' : ' Solo kill'}`,
+                    fields: [],
                     timestamp: event.TimeStamp,
                 });
 
@@ -204,7 +196,6 @@ function sendKillReport(event, channelId) {
                     },
                     { 'dd': [], 'heal': [] }
                 );
-                console.log(assistant);
 
                 if (assistant.dd.length) {
                     embed.fields.push(
@@ -218,7 +209,7 @@ function sendKillReport(event, channelId) {
                 if (assistant.heal.length) {
                     embed.fields.push(
                         {
-                            name: 'Heal' + (assistant.heal.length > 1 ? ` + ${assistant.heal.length - 1}` : ''),
+                            name: 'Heal',
                             value: assistant.heal.join('\n'),
                             inline: true,
                         }
@@ -235,30 +226,70 @@ function sendKillReport(event, channelId) {
         });
 }
 
-function checkKillboard() {
-    logger.info('Checking killboard...');
-    Albion.getEvents({ limit: 51, offset: 0 }).then(events => {
-        if (!events) {
-            return;
+function recursiveKillboard(startPos) {
+    startPos = startPos || 0;
+
+    if (startPos >= 0) {
+        return checkKillboard(startPos).then(_ => recursiveKillboard(files));
+    } else {
+        return Promise.resolve();
+    }
+}
+
+const recursiveCall = (index) => {
+    return new Promise((resolve) => {
+        console.log(index);
+        if (index < 3) {
+            return resolve(recursiveCall(++index));
+        } else {
+            return resolve();
         }
-
-        events.sort((a, b) => a.EventId - b.EventId)
-            .filter(event => event.EventId > lastEventId)
-            .forEach(event => {
-                lastEventId = event.EventId;
-
-                const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
-                const isFriendlyDeath = config.guild.guilds.indexOf(event.Victim.GuildName) !== -1;
-
-                if (!(isFriendlyKill || isFriendlyDeath) || event.TotalVictimKillFame < 10000) {
-                    return;
-                }
-
-                sendKillReport(event);
-            });
-
-        db.set('recents.eventId', lastEventId).write();
     });
+};
+
+
+function checkKillboard(startPos) {
+    startPos = startPos || 0;
+    logger.info(`Checking killboard...${startPos}...`);
+    Albion.getEvents({ limit: 51, offset: startPos * 51 }).then(
+        events => {
+            if (!events) {
+                return resolve();
+            }
+            let lastId = events[events.length - 1].EventId;
+            let firstId = events[0].EventId;
+
+            events.sort((a, b) => a.EventId - b.EventId)
+                .filter(event => event.EventId > lastEventId)
+                .forEach(event => {
+                    lastEventId = event.EventId;
+
+                    const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
+                    const isFriendlyDeath = config.guild.guilds.indexOf(event.Victim.GuildName) !== -1;
+
+                    if (!(isFriendlyKill || isFriendlyDeath) || event.TotalVictimKillFame < 10000) {
+                        return;
+                    }
+
+                    sendKillReport(event);
+                });
+
+            if (startPos === 0) {
+                db.set('recents.eventId', lastEventId).write();
+            }
+
+            if (lastId > lastEventId) {
+                console.log('LastSaved: ' + lastEventId);
+                console.log('LastEvent: ' + lastId);
+                console.log('FrstEvent: ' + firstId);
+
+                return checkKillboard(++startPos);
+            }
+        },
+        error => {
+            console.log(error);
+        }
+    );
 }
 
 function createGuildTag(player) {
