@@ -190,6 +190,9 @@ function sendKillReport(event, channelId) {
                             accumulator.dd.push(record);
                         } else if (item.SupportHealingDone) {
                             accumulator.heal.push(record);
+                        } else if (event.Killer.Name === item.Name) {
+                            // Убийца получил 0 фейма
+                            accumulator.dd.push(record);
                         }
 
                         return accumulator;
