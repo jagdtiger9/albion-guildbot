@@ -186,13 +186,11 @@ function sendKillReport(event, channelId) {
                         record = Math.round(record).toLocaleString() + ` - [${item.Name}](${infoUrl}/players/${item.Id})`;
                         //(item.GuildName ? `[${item.GuildName}] ` : '') + `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
-                        if (item.DamageDone) {
+                        // Ассист по дамагу или убийца получил 0 фейма
+                        if (item.DamageDone || event.Killer.Name === item.Name) {
                             accumulator.dd.push(record);
                         } else if (item.SupportHealingDone) {
                             accumulator.heal.push(record);
-                        } else if (event.Killer.Name === item.Name) {
-                            // Убийца получил 0 фейма
-                            accumulator.dd.push(record);
                         }
 
                         return accumulator;
