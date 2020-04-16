@@ -248,15 +248,23 @@ const recursiveCall = (index) => {
     });
 };
 
-
-function checkKillboard(startPos, lastEventSaved) {
+/**
+ * Запрашиваем список событий, пачками по 51
+ * Если ID первого события в списке больше последнего запомненного, запрашиваем следующую пачку
+ *
+ * @param startPos  смещение пачки, первый запрос - 0
+ * @param minEventId    ID последнего обработанного события из последней транзакции
+ * @param maxEventId    ID первого обработанного события пачки,  ID событий следующих пачек должны быть меньше
+ */
+function checkKillboard(startPos, minEventId, maxEventId) {
     startPos = startPos || 0;
     if (startPos > 7) {
-        // Максимальное кол-во подзапросов - 5
+        // Максимальное кол-во подзапросов - 7
         return;
     }
 
-    lastEventSaved = lastEventSaved || lastEventId;
+    minEventId = minEventId || lastEventId;
+    maxEventId = maxEventId || 0;
     logger.info(`Checking killboard... - ${startPos}`);
     Albion.getEvents({ limit: 51, offset: startPos * 51 }).then(
         events => {
@@ -268,7 +276,7 @@ function checkKillboard(startPos, lastEventSaved) {
             let firstId = events[0].EventId;
             let lastId = events[events.length - 1].EventId;
 
-            events.filter(event => event.EventId > lastEventSaved)
+            events.filter(event => event.EventId > minEventId && (maxEventId === 0 || event.EventId < maxEventId))
                 .forEach(event => {
                     if (startPos === 0) {
                         lastEventId = event.EventId;
@@ -288,14 +296,13 @@ function checkKillboard(startPos, lastEventSaved) {
                 db.set('recents.eventId', lastEventId).write();
             }
 
-            if (firstId > lastEventSaved) {
-                console.log('LastSaved: ' + lastEventSaved);
+            if (firstId > minEventId) {
+                console.log('LastSaved: ' + minEventId);
                 console.log('FrstEvent: ' + firstId);
                 console.log('LastEvent: ' + lastId);
-
                 console.log('GO Next');
 
-                return checkKillboard(++startPos, lastEventSaved);
+                return checkKillboard(++startPos, minEventId, firstId);
             }
         },
         error => {
