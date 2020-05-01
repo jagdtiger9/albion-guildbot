@@ -23,12 +23,12 @@ function baseRequest(baseUrl: string, path: string, queries?: { [key: string]: a
                 reject(error || response);
                 return;
             }
+            const requestBody = body.replace(/\n/g, ' ').replace(/\r/g, '').trim();
             try {
                 // replacements needed for status.txt
-                resolve(JSON.parse(body.replace(/\n/g, ' ').replace(/\r/g, '').trim()));
+                resolve(JSON.parse(requestBody));
             } catch (error) {
-                reject('JSON parse error');
-                return;
+                reject(`JSON parse error - ${path}\n${requestBody}`);
             }
         });
     });

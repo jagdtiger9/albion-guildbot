@@ -81,6 +81,8 @@ function checkBattles() {
 
                 return relevantPlayerCount >= config.battle.minRelevantPlayers;
             }).forEach(battle => sendBattleReport(battle));
+    }).catch(currentAlbionStatusError => {
+        logger.info(currentAlbionStatusError);
     });
 }
 
@@ -157,7 +159,6 @@ function sendBattleReport(battle, channelId) {
 
 function sendKillReport(event, channelId) {
     const isFriendlyKill = config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
-    //console.log('==========', event.Victim.Inventory);
 
     createImage('Victim', event)
         .then(imgBufferVictim => {
@@ -289,6 +290,7 @@ function checkKillboard(startPos, minEventId, maxEventId) {
                         return;
                     }
 
+                    console.log(startPos + ' - ' + minEventId);
                     sendKillReport(event);
                 });
 
@@ -308,7 +310,9 @@ function checkKillboard(startPos, minEventId, maxEventId) {
         error => {
             console.log(error);
         }
-    );
+    ).catch(currentAlbionStatusError => {
+        logger.info(currentAlbionStatusError);
+    });
 }
 
 function createGuildTag(player) {
@@ -370,6 +374,8 @@ function checkServerStatus(channelId) {
             lastAlbionStatusTrial++;
             db.set('recents.albionStatusTrial', lastAlbionStatusTrial).write();
         }
+    }).catch(currentAlbionStatusError => {
+        logger.info(currentAlbionStatusError);
     });
 }
 
