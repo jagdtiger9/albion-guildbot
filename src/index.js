@@ -290,7 +290,7 @@ function checkKillboard(startPos, minEventId, maxEventId) {
                         return;
                     }
 
-                    console.log(startPos + ' - ' + minEventId);
+                    console.log(startPos + ' - ' + minEventId + ' -- ' + event.EventId);
                     sendKillReport(event);
                 });
 

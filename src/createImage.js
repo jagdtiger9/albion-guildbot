@@ -43,7 +43,7 @@ function fillRectangle(image, hex, x1, y1, x2, y2) {
 }
 
 function createImage(target, event) {
-    const NUM = 8;
+    const NUM = 9;
     const inventory = event['Victim'].Inventory.filter(item => item !== null && item.Type.indexOf('TRASH') === -1);
     const equipment = [
         event['Killer'].Equipment.MainHand,
@@ -51,6 +51,7 @@ function createImage(target, event) {
         event['Killer'].Equipment.Armor,
         event['Killer'].Equipment.Shoes,
         event['Killer'].Equipment.Head,
+        event['Killer'].Equipment.Cape,
         event['Killer'].Equipment.Mount,
         event['Killer'].Equipment.Potion,
         event['Killer'].Equipment.Food,
@@ -59,6 +60,7 @@ function createImage(target, event) {
         event[target].Equipment.Armor,
         event[target].Equipment.Shoes,
         event[target].Equipment.Head,
+        event[target].Equipment.Cape,
         event[target].Equipment.Mount,
         event[target].Equipment.Potion,
         event[target].Equipment.Food,
