@@ -259,8 +259,8 @@ const recursiveCall = (index) => {
  */
 function checkKillboard(startPos, minEventId, maxEventId) {
     startPos = startPos || 0;
-    if (startPos > 7) {
-        // Максимальное кол-во подзапросов - 7
+    if (startPos > 30) {
+        // Максимальное кол-во подзапросов - 30
         return;
     }
 
