@@ -225,7 +225,10 @@ function sendKillReport(event, channelId) {
         })
         .then(() => {
             logger.info(`Successfully posted log of ${createDisplayName(event.Killer)} killing ${createDisplayName(event.Victim)}.`);
-        });
+        })
+        .catch(statusError => {
+            logger.info(statusError);
+        });;
 }
 
 function recursiveKillboard(startPos) {

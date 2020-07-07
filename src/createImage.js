@@ -19,7 +19,7 @@ const iconsPromise = Jimp.read('https://assets.albiononline.com/assets/images/ki
 
 function getItemUrl(item) {
     return item && [
-        'https://gameinfo.albiononline.com/api/gameinfo/items/',
+        'https://render.albiononline.com/v1/item/',
         `${item.Type}.png`,
         `?count=${item.Count}`,
         `&quality=${item.Quality}`,
