@@ -228,29 +228,8 @@ function sendKillReport(event, channelId) {
         })
         .catch(statusError => {
             logger.info(statusError);
-        });;
+        });
 }
-
-function recursiveKillboard(startPos) {
-    startPos = startPos || 0;
-
-    if (startPos >= 0) {
-        return checkKillboard(startPos).then(_ => recursiveKillboard(files));
-    } else {
-        return Promise.resolve();
-    }
-}
-
-const recursiveCall = (index) => {
-    return new Promise((resolve) => {
-        console.log(index);
-        if (index < 3) {
-            return resolve(recursiveCall(++index));
-        } else {
-            return resolve();
-        }
-    });
-};
 
 /**
  * Запрашиваем список событий, пачками по 51
@@ -316,11 +295,6 @@ function checkKillboard(startPos, minEventId, maxEventId) {
     ).catch(currentAlbionStatusError => {
         logger.info(currentAlbionStatusError);
     });
-}
-
-function createGuildTag(player) {
-    const allianceTag = player.AllianceName ? `[${player.AllianceName}]` : '';
-    return player.GuildName ? `${allianceTag} [${player.GuildName}](${infoUrl}/guilds/${player.GuildId})` : 'N/A';
 }
 
 function createDisplayName(player) {
