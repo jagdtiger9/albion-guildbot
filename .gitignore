@@ -2,6 +2,5 @@ node_modules
 .idea/
 *.swo
 npm-debug.log
-database/*
 config.js
 package-lock.json
