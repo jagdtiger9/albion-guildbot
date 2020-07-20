@@ -3,14 +3,14 @@ const { createImage } = require('./createImage');
 
 const FileSync = require('lowdb/adapters/FileSync');
 const low = require('lowdb');
-const adapter = new FileSync('.db.json');
+const adapter = new FileSync('./database/.db.json');
 const db = low(adapter);
 
 const Battle = require('./Battle/index');
 const AlbionApi = require('./AlbionApi');
 
 module.exports = class KillBot {
-    constructor(config, bot) {
+    constructor(config, bot, sqlite3) {
         this.config = config;
 
         db.defaults({ recents: { battleId: 0, eventId: 0 } }).write();
@@ -19,6 +19,7 @@ module.exports = class KillBot {
         this.lastEventId = db.get('recents.eventId').value();
 
         this.bot = bot;
+        this.sqlite3 = sqlite3;
 
         this.albionApi = new AlbionApi();
     }
@@ -40,9 +41,9 @@ module.exports = class KillBot {
      * @param maxEventId    ID первого обработанного события пачки,  ID событий следующих пачек должны быть меньше
      */
     checkKills(startPos, minEventId, maxEventId) {
+        // Максимальное кол-во подзапросов
         startPos = startPos || 0;
-        if (startPos > 30) {
-            // Максимальное кол-во подзапросов - 30
+        if (startPos > 5) {
             return;
         }
 
@@ -269,6 +270,41 @@ module.exports = class KillBot {
             console.log(`Successfully posted log of battle between ${title}.`);
         }).catch(err => {
             console.log(err);
+        });
+    }
+
+    initDatabase() {
+        let sqlTables = [
+            'CREATE TABLE IF NOT EXISTS lastId (\n' +
+            '   battleId INTEGER,\n' +
+            '   eventId INTEGER\n' +
+            ');',
+            'CREATE TABLE IF NOT EXISTS eventIds (\n' +
+            '   eventId INTEGER UNIQUE \n' +
+            ');',
+        ];
+
+        let db = this.connect();
+        sqlTables.map(sql => db.run(sql));
+        this.disconnect(db);
+    }
+
+    connect() {
+        return new this.sqlite3.Database('./database/killbot.db', (err) => {
+            if (err) {
+                console.error(err.message);
+                throw new Error(err.message);
+            }
+            console.log('Killbot database connection - OK');
+        });
+    }
+
+    disconnect(db) {
+        db.close((err) => {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log('Killbot database connection closed');
         });
     }
 };
