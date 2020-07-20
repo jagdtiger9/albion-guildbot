@@ -1,29 +1,14 @@
-import Alliance from './Alliance';
-import Guild from './Guild';
-import IBattleData, {IPlayerData} from './IBattleData';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * The type of grouping a {@link Faction} represents.
  */
-export enum FactionType {
-    Alliance = 'alliance',
-    Guild = 'guild',
-    Unguilded = 'unguilded',
-}
-
-/**
- * A {@link FactionLike} object has the properties
- *   necessary to construct a {@link Faction}.
- */
-export interface IFactionLike {
-    deaths: number;
-    factionType: FactionType;
-    killFame: number;
-    kills: number;
-    name: string;
-    players: IPlayerData[];
-}
-
+var FactionType;
+(function (FactionType) {
+    FactionType["Alliance"] = "alliance";
+    FactionType["Guild"] = "guild";
+    FactionType["Unguilded"] = "unguilded";
+})(FactionType = exports.FactionType || (exports.FactionType = {}));
 /**
  * A {@link Faction} is an immutable object that represents the faction a
  *   player or group of players belongs to. A faction can represent an
@@ -31,15 +16,14 @@ export interface IFactionLike {
  *   highest level of organization the player belongs to. This is primarily
  *   used for being able to associate all players with a group.
  */
-export default class Faction implements IFactionLike {
+class Faction {
     /**
      * Construct a {@link Faction} by extracting and grouping all of the
      *   unguilded players in the passed {@link IBattleData}.
      */
-    static fromUnguilded(battleData: IBattleData) {
+    static fromUnguilded(battleData) {
         const players = Object.values(battleData.players)
             .filter(player => player.guildName === '');
-
         const factionData = players.reduce((data, player) => {
             data.deaths += player.deaths;
             data.killFame += player.killFame;
@@ -53,18 +37,9 @@ export default class Faction implements IFactionLike {
             name: 'Unguilded',
             players,
         });
-
-        return new Faction(factionData as IFactionLike);
+        return new Faction(factionData);
     }
-
-    deaths: number;
-    factionType: FactionType;
-    killFame: number;
-    kills: number;
-    name: string;
-    players: IPlayerData[];
-
-    constructor(factionLike: IFactionLike) {
+    constructor(factionLike) {
         this.deaths = factionLike.deaths;
         this.factionType = factionLike.factionType;
         this.killFame = factionLike.killFame;
@@ -73,3 +48,5 @@ export default class Faction implements IFactionLike {
         this.players = factionLike.players;
     }
 }
+exports.default = Faction;
+//# sourceMappingURL=Faction.js.map

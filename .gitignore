@@ -1,8 +1,6 @@
 node_modules
-*.swp
+.idea/
 *.swo
-serviceAccountKey.json
-lib
 npm-debug.log
 .db.json
 config.js

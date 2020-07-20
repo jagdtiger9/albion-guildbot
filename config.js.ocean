@@ -12,11 +12,6 @@ module.exports = {
     feedChannelId: '695941493810135060',
     //Ocean killboard chat id
     //feedChannelId: '535732736850132992',
-    // The ID of the discord channel to post albion status infos to.
-    // Chill&out
-    statusChannelId: '695941493810135060'
-    //Ocean killboard chat id
-    //statusChannelId: '535732736850132992'
   },
   guild: {
     // The name of your guild (or guilds, if the guild is large).
