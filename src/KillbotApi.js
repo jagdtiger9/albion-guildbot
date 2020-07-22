@@ -6,7 +6,7 @@ const low = require('lowdb');
 const adapter = new FileSync('./database/.db.json');
 const db = low(adapter);
 
-const Battle = require('./Battle/index');
+const Battle = require('./Battle/Battle');
 const AlbionApi = require('./AlbionApi');
 
 module.exports = class KillBot {
@@ -15,8 +15,8 @@ module.exports = class KillBot {
 
         db.defaults({ recents: { battleId: 0, eventId: 0 } }).write();
         this.db = db;
-        this.lastBattleId = db.get('recents.battleId').value();
-        this.lastEventId = db.get('recents.eventId').value();
+        this.lastEventId = db.get('recents.eventId').value() || 0;
+        this.lastBattleId = db.get('recents.battleId').value() || 0;
 
         this.bot = bot;
         this.sqlite3 = sqlite3;
@@ -35,66 +35,52 @@ module.exports = class KillBot {
     /**
      * Запрашиваем список событий, пачками по 51
      * Если ID первого события в списке больше последнего запомненного, запрашиваем следующую пачку
+     * this.lastEventId - ID последнего обработанного события из последней транзакции
      *
      * @param startPos  смещение пачки, первый запрос - 0
-     * @param minEventId    ID последнего обработанного события из последней транзакции
-     * @param maxEventId    ID первого обработанного события пачки,  ID событий следующих пачек должны быть меньше
+     * @param minRangeId
+     * @param maxRangeId    ID первого обработанного события предыдущей пачки
      */
-    checkKills(startPos, minEventId, maxEventId) {
-        // Максимальное кол-во подзапросов
-        startPos = startPos || 0;
-        if (startPos > 5) {
-            return;
-        }
-
-        minEventId = minEventId || this.lastEventId;
-        maxEventId = maxEventId || 0;
-        console.log(`Checking killboard... - ${startPos}`);
+    checkKills(startPos = 0, minRangeId = this.lastEventId, maxRangeId = 0) {
         this.albionApi.getEvents({ limit: 51, offset: startPos * 51 }).then(
             events => {
                 if (!events) {
-                    return resolve();
+                    return this.resolve();
                 }
+
                 events.sort((a, b) => a.EventId - b.EventId);
+                let minEventId = events[0].EventId;
+                let maxEventId = events[events.length - 1].EventId;
+                let range = this.getInRange(minEventId, maxEventId);
+                this.log(startPos, '; last: ', minRangeId, 'min: ', minEventId, 'max: ', maxEventId, 'range: ', range);
 
-                let firstId = events[0].EventId;
-                let lastId = events[events.length - 1].EventId;
+                // ID первого события в полученном списке больше последнего обработанного ИЛИ макс. кол-во подзапросов
+                if (minEventId > minRangeId && (startPos || 0) < 5) {
+                    this.checkKills(startPos + 1, minRangeId, minEventId);
+                }
 
-                events.filter(event => event.EventId > minEventId && (maxEventId === 0 || event.EventId < maxEventId))
-                    .forEach(event => {
-                        if (startPos === 0) {
-                            this.lastEventId = event.EventId;
-                        }
-
+                events = events.filter(
+                    event => event.EventId > minRangeId
+                        && (!maxRangeId || event.EventId < maxRangeId)
+                        && !range.includes(event.EventId)
+                ).filter(event => {
                         const isFriendlyKill = this.config.guild.guilds.indexOf(event.Killer.GuildName) !== -1;
                         const isFriendlyDeath = this.config.guild.guilds.indexOf(event.Victim.GuildName) !== -1;
 
-                        if (!(isFriendlyKill || isFriendlyDeath) || event.TotalVictimKillFame < 10000) {
-                            return;
-                        }
+                        return (isFriendlyKill || isFriendlyDeath) && event.TotalVictimKillFame > 1000;
+                    }
+                );
+                events.forEach(event => {
+                    this.sendKillReport(event);
+                });
 
-                        console.log(startPos + ' - ' + minEventId + ' -- ' + event.EventId);
-                        this.sendKillReport(event);
-                    });
-
-                if (startPos === 0) {
-                    this.db.set('recents.eventId', this.lastEventId).write();
-                }
-
-                if (firstId > minEventId) {
-                    console.log('LastSaved: ' + minEventId);
-                    console.log('FrstEvent: ' + firstId);
-                    console.log('LastEvent: ' + lastId);
-                    console.log('GO Next');
-
-                    return this.checkKills(++startPos, minEventId, firstId);
-                }
+                this.saveRange(startPos, events.map(event => event.EventId), maxEventId);
             },
             error => {
-                console.log(error);
+                this.log(error);
             }
         ).catch(error => {
-            console.log(error);
+            this.log(error);
         });
     }
 
@@ -126,12 +112,12 @@ module.exports = class KillBot {
                         function(accumulator, item) {
                             let record = item.DamageDone ? item.DamageDone : item.SupportHealingDone;
                             record = Math.round(record).toLocaleString() + ` - [${item.Name}](${INFO_URL}/players/${item.Id})`;
-                            //(item.GuildName ? `[${item.GuildName}] ` : '') + `, IP:${Math.round(item.AverageItemPower).toLocaleString()}`;
 
-                            // Ассист по дамагу или убийца получил 0 фейма
-                            if (item.DamageDone || event.Killer.Name === item.Name) {
+                            // Ассист по дамагу
+                            if (item.DamageDone) {
                                 accumulator.dd.push(record);
-                            } else if (item.SupportHealingDone) {
+                            }
+                            if (item.SupportHealingDone) {
                                 accumulator.heal.push(record);
                             }
 
@@ -165,10 +151,10 @@ module.exports = class KillBot {
                 return this.bot.channels.cache.get((channelId || this.config.discord.feedChannelId)).send({ embed, files });
             })
             .then(() => {
-                console.log(`Successfully posted log of ${this.createDisplayName(event.Killer)} killing ${this.createDisplayName(event.Victim)}.`);
+                this.log(`Successfully posted log of ${this.createDisplayName(event.Killer)} killing ${this.createDisplayName(event.Victim)}.`);
             })
             .catch(statusError => {
-                console.log(statusError);
+                this.log(statusError);
             });
     }
 
@@ -178,7 +164,7 @@ module.exports = class KillBot {
     }
 
     checkBattles() {
-        console.log('Checking battles...');
+        this.log('Checking battles...');
         this.albionApi.getBattles({ limit: 20, offset: 0 }).then(battles => {
             battles
                 // Filter out battles that have already been processed
@@ -198,7 +184,7 @@ module.exports = class KillBot {
                     return relevantPlayerCount >= this.config.battle.minRelevantPlayers;
                 }).forEach(battle => this.sendBattleReport(battle));
         }).catch(error => {
-            console.log(error);
+            this.log(error);
         });
     }
 
@@ -267,17 +253,16 @@ module.exports = class KillBot {
         };
 
         this.bot.channels.cache.get(channelId || this.config.discord.feedChannelId).send({ embed }).then(() => {
-            console.log(`Successfully posted log of battle between ${title}.`);
+            this.log(`Successfully posted log of battle between ${title}.`);
         }).catch(err => {
-            console.log(err);
+            this.log(err);
         });
     }
 
     initDatabase() {
         let sqlTables = [
-            'CREATE TABLE IF NOT EXISTS lastId (\n' +
-            '   battleId INTEGER,\n' +
-            '   eventId INTEGER\n' +
+            'CREATE TABLE IF NOT EXISTS batleIds (\n' +
+            '   battleId INTEGER\n' +
             ');',
             'CREATE TABLE IF NOT EXISTS eventIds (\n' +
             '   eventId INTEGER UNIQUE \n' +
@@ -289,13 +274,53 @@ module.exports = class KillBot {
         this.disconnect(db);
     }
 
+    getInRange(minId, maxId) {
+        let db = this.connect();
+        let range = [];
+        let sql = '';
+        let params = [];
+        if (maxId) {
+            sql = ' SELECT * FROM eventIds WHERE eventId>=? AND eventId <=? ';
+            params = [minId, maxId];
+        } else {
+            sql = ' SELECT * FROM eventIds WHERE eventId>=? ';
+            params = [minId];
+        }
+        db.all(sql, params, function(err, rows) {
+            if (err) {
+                console.error(err.message);
+                throw new Error(err.message);
+            }
+            range = rows;
+        });
+        this.disconnect(db);
+
+        return range;
+    }
+
+    saveRange(startPos, saveEventList, saveMaxId) {
+        this.log(startPos, '; saveRange: ', saveEventList, saveMaxId);
+        if (saveEventList.length) {
+            let db = this.connect();
+            let sql = ' REPLACE INTO eventIds (eventId) VALUES ';
+            saveEventList.map(eventId => sql += `(${eventId}),`);
+            sql = sql.substring(0, sql.length - 1);
+            db.run(sql);
+            this.disconnect(db);
+        }
+        // Последнее обработанное событие
+        if (saveMaxId > this.lastEventId) {
+            this.db.set(startPos, '; recents.eventId', saveMaxId).write();
+            this.lastEventId = saveMaxId;
+        }
+    }
+
     connect() {
         return new this.sqlite3.Database('./database/killbot.db', (err) => {
             if (err) {
                 console.error(err.message);
                 throw new Error(err.message);
             }
-            console.log('Killbot database connection - OK');
         });
     }
 
@@ -304,7 +329,10 @@ module.exports = class KillBot {
             if (err) {
                 return console.error(err.message);
             }
-            console.log('Killbot database connection closed');
         });
+    }
+
+    log() {
+        console.log(new Date().toLocaleTimeString(), ...Array.from(arguments));
     }
 };

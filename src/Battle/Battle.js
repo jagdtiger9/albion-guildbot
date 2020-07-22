@@ -1,14 +1,11 @@
 'use strict';
 
-const Alliance_1 = require('./Alliance');
-const Faction_1 = require('./Faction');
-const Guild_1 = require('./Guild');
+const Alliance = require('./Alliance');
+const Faction = require('./Faction');
+const Guild = require('./Guild');
 
 module.exports = class Battle {
     constructor(battleData) {
-        /**
-         * An array of all {@link Faction}s involved in the fight, sorted by rank.
-         */
         this.rankedFactions = [];
         this.endTime = battleData.endTime;
         this.id = battleData.id;
@@ -17,21 +14,21 @@ module.exports = class Battle {
         this.players = Object.values(battleData.players);
         // Alliances
         const allianceArray = Object.values(battleData.alliances)
-            .map(allianceData => new Alliance_1.default(allianceData, battleData));
+            .map(allianceData => new Alliance.default(allianceData, battleData));
         this.alliances = new Map(allianceArray
             .map(alliance => [alliance.name, alliance]));
         // Guilds
         const guildArray = Object.values(battleData.guilds)
-            .map(guildData => new Guild_1.default(guildData, battleData));
+            .map(guildData => new Guild.default(guildData, battleData));
         this.guilds = new Map(guildArray
             .map(guild => [guild.name, guild]));
         // Factions
         this.rankedFactions = this.rankedFactions.concat(allianceArray
-            .map(alliance => new Faction_1.default(alliance)));
+            .map(alliance => new Faction.default(alliance)));
         this.rankedFactions = this.rankedFactions.concat(guildArray
             .filter(guild => guild.alliance === '')
-            .map(guild => new Faction_1.default(guild)));
-        const unguildedFaction = Faction_1.default.fromUnguilded(battleData);
+            .map(guild => new Faction.default(guild)));
+        const unguildedFaction = Faction.default.fromUnguilded(battleData);
         if (unguildedFaction.players.length) {
             this.rankedFactions.push(unguildedFaction);
         }

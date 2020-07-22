@@ -15,9 +15,9 @@ bot.on('ready', () => {
     KillBot.initDatabase();
 
     KillBot.checkKills();
-    KillBot.checkBattles();
-
     KillBot.checkKillsInterval(30000);
+
+    KillBot.checkBattles();
     KillBot.checkBattlesInterval(30000);
 });
 

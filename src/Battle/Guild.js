@@ -1,14 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const Faction_1 = require("./Faction");
-/**
- * An {@link Guild} is an immutable object that abstracts relevant details about
- *   a group of {@link Player}s present in the same AO {@link Battle} from raw
- *   battle data received from the AO API.
- */
+'use strict';
+
+const Faction = require('./Faction');
+
 class Guild {
     constructor(guildData, battleData) {
-        this.factionType = Faction_1.FactionType.Guild;
+        this.factionType = Faction.FactionType.Guild;
         this.alliance = guildData.alliance;
         this.deaths = guildData.deaths;
         this.killFame = guildData.killFame;
@@ -18,5 +14,5 @@ class Guild {
             .filter(player => player.guildName === guildData.name);
     }
 }
+
 exports.default = Guild;
-//# sourceMappingURL=Guild.js.map
