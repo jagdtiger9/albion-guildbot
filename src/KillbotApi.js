@@ -310,11 +310,9 @@ module.exports = class KillBot {
         }
         // Последнее обработанное событие
         if (saveMaxId > this.lastEventId) {
-            // SQLite db
-            this.db.set(startPos, '; recents.eventId', saveMaxId).write();
-            this.lastEventId = saveMaxId;
             // JSON db
-            this.jsonDb.set('recents.eventId', this.saveMaxId).write();
+            this.lastEventId = saveMaxId;
+            this.jsonDb.set('recents.eventId', saveMaxId).write();
         }
     }
 
