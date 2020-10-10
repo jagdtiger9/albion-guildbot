@@ -4,7 +4,7 @@ const { createImage } = require('./createImage');
 const FileSync = require('lowdb/adapters/FileSync');
 const low = require('lowdb');
 const adapter = new FileSync('./database/.db.json');
-const db = low(adapter);
+const jsonDb = low(adapter);
 
 const Battle = require('./Battle/Battle');
 const AlbionApi = require('./AlbionApi');
@@ -13,10 +13,10 @@ module.exports = class KillBot {
     constructor(config, bot, sqlite3) {
         this.config = config;
 
-        db.defaults({ recents: { battleId: 0, eventId: 0 } }).write();
-        this.db = db;
-        this.lastEventId = db.get('recents.eventId').value() || 0;
-        this.lastBattleId = db.get('recents.battleId').value() || 0;
+        jsonDb.defaults({ recents: { battleId: 0, eventId: 0 } }).write();
+        this.jsonDb = jsonDb;
+        this.lastEventId = jsonDb.get('recents.eventId').value() || 0;
+        this.lastBattleId = jsonDb.get('recents.battleId').value() || 0;
 
         this.bot = bot;
         this.sqlite3 = sqlite3;
@@ -191,7 +191,7 @@ module.exports = class KillBot {
     sendBattleReport(battle, channelId) {
         if (battle.id > this.lastBattleId) {
             this.lastBattleId = battle.id;
-            this.db.set('recents.battleId', this.lastBattleId).write();
+            this.jsonDb.set('recents.battleId', this.lastBattleId).write();
         }
 
         const title = battle.rankedFactions.slice()
@@ -310,8 +310,11 @@ module.exports = class KillBot {
         }
         // Последнее обработанное событие
         if (saveMaxId > this.lastEventId) {
+            // SQLite db
             this.db.set(startPos, '; recents.eventId', saveMaxId).write();
             this.lastEventId = saveMaxId;
+            // JSON db
+            this.jsonDb.set('recents.eventId', this.saveMaxId).write();
         }
     }
 
