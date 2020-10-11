@@ -7,6 +7,10 @@ module.exports = class AlbionApi {
     constructor() {
     }
 
+    rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     /**
      * Request a resource from the Albion Online API.
      * @param baseUrl
@@ -18,9 +22,16 @@ module.exports = class AlbionApi {
         const qs = queries
             ? Object.entries(queries).map((query) => query.join('=')).join('&')
             : '';
-        const url = `${baseUrl}${path}?${qs}`;
+        const url = `${baseUrl}${path}?${qs}&${this.rand(1, 1000)}`;
         return new Promise((resolve, reject) => {
-            request(url, (error, response, body) => {
+            const options = {
+                url: url,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36',
+                    'Cache-Control': 'no-store'
+                }
+            };
+            request(options, (error, response, body) => {
                 if (error || (response && response.statusCode === 404)) {
                     reject(error || response);
                     return;
